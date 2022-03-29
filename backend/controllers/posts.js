@@ -22,3 +22,25 @@ export const createPost = async (req, res) => {
     res.status(409).json({ message: error.message });
   }
 };
+
+export const updatePost = async (req, res) => {
+  const { title, message, creator, tags } = req.body;
+  const _id = req.params.id;
+  try {
+    if (mongoose.isValidObjectId(_id)) {
+      const updatedPost = await PostMessage.findOneAndUpdate(
+        { _id },
+        { title, message, creator, tags },
+        { new: true }
+      );
+
+      res.status(200).json({
+        message: `Post with id ${_id} is successfully updated !`,
+        updatedPost,
+      });
+    }
+    res.status(404).json({ message: `${_id} is not a valid ID ` });
+  } catch (error) {
+    res.status(409).json({ message: error.message });
+  }
+};
