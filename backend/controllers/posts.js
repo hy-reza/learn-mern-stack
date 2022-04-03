@@ -24,13 +24,13 @@ export const createPost = async (req, res) => {
 };
 
 export const updatePost = async (req, res) => {
-  const { title, message, creator, tags } = req.body;
+  const post = req.body;
   const _id = req.params.id;
   try {
     if (mongoose.isValidObjectId(_id)) {
-      const updatedPost = await PostMessage.findOneAndUpdate(
-        { _id },
-        { title, message, creator, tags },
+      const updatedPost = await PostMessage.findByIdAndUpdate(
+        _id,
+        { ...post, _id },
         { new: true }
       );
 
@@ -38,8 +38,53 @@ export const updatePost = async (req, res) => {
         message: `Post with id ${_id} is successfully updated !`,
         updatedPost,
       });
+    } else {
+      res.status(404).json({ message: `${_id} is not a valid ID ` });
     }
-    res.status(404).json({ message: `${_id} is not a valid ID ` });
+  } catch (error) {
+    res.status(409).json({ message: error.message });
+  }
+};
+
+export const deletePost = async (req, res) => {
+  const id = req.params.id;
+  try {
+    if (mongoose.isValidObjectId(id)) {
+      const deletedPost = await PostMessage.findByIdAndDelete(id, {
+        new: true,
+      });
+      res.status(200).json({
+        message: `Post with id : ${id} is successfully deleted`,
+        deletedPost,
+      });
+    } else {
+      res.status(409).json({ message: `${id} is not a valid ID ` });
+    }
+  } catch (error) {
+    res.status(409).json({ message: error });
+  }
+};
+
+export const likePost = async (req, res) => {
+  const { id } = req.params;
+  const post = await PostMessage.findOne({ id });
+
+  try {
+    if (!mongoose.isValidObjectId(id)) {
+      res.status(409).json({ message: `${id} is not a valid ID` });
+    }
+
+    const updatedPost = await PostMessage.findByIdAndUpdate(
+      id,
+      {
+        likeCount: post.likeCount + 1,
+      },
+      {
+        new: true,
+      }
+    );
+
+    res.status(200).json({ message: "You like this post !", updatedPost });
   } catch (error) {
     res.status(409).json({ message: error.message });
   }
