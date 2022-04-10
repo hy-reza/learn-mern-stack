@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import useStyles from "./styles";
 import FileBase from "react-file-base64";
 import { TextField, Button, Typography, Paper } from "@material-ui/core";
-import { createPost, updatePost} from "actions/posts";
+import { createPost, updatePost } from "actions/posts";
 
 const Form = ({ currentId, setCurrentId }) => {
   const classes = useStyles();
@@ -13,13 +13,13 @@ const Form = ({ currentId, setCurrentId }) => {
     currentId ? state.posts.find((p) => p._id === currentId) : null
   );
   const [postData, setPostData] = useState({
-    creator: "",
     title: "",
     message: "",
     tags: "",
     selectedFile: "",
   });
 
+  const user = JSON.parse(localStorage.getItem("profile"));
   useEffect(() => {
     if (post) setPostData(post);
   }, [post]);
@@ -28,11 +28,9 @@ const Form = ({ currentId, setCurrentId }) => {
     e.preventDefault();
 
     if (currentId) {
-      dispatch(updatePost(currentId, postData));
-     
+      dispatch(updatePost(currentId, { ...postData, name: user?.result?.name }));
     } else {
-      dispatch(createPost(postData));
-      
+      dispatch(createPost({ ...postData, name: user?.result?.name }));
     }
     clear();
   };
@@ -48,13 +46,22 @@ const Form = ({ currentId, setCurrentId }) => {
   const clear = (e) => {
     setCurrentId(null);
     setPostData({
-      creator: "",
       title: "",
       message: "",
       tags: "",
       selectedFile: "",
     });
   };
+
+  if(!user?.result?.name){
+    return(
+      <Paper className={classes.paper}>
+        <Typography variant="h6" align="center">Please Sign In to create yout own memories !</Typography>
+      </Paper>
+    )
+  }
+
+
   return (
     <Paper className={classes.paper}>
       <form
@@ -66,14 +73,6 @@ const Form = ({ currentId, setCurrentId }) => {
         <Typography variant="h6">
           {currentId ? "Editing" : "Creating"} Memory
         </Typography>
-        <TextField
-          name="creator"
-          variant="outlined"
-          label="Creator"
-          fullWidth
-          onChange={handleChange}
-          value={postData.creator}
-        />
         <TextField
           name="title"
           variant="outlined"
